@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "755538625594",
+    "project_id": "sports-drive",
+    "storage_bucket": "sports-drive.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755538625594:android:51c72c7405ed7d0ebf2103",
+        "android_client_info": {
+          "package_name": "com.sports_drive"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755538625594-m1lv1dks1nmpp9tdpnc7ru4r6aemb1m1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sports_drive",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "755538625594-tursnu706pfnp56d7625pqj155k6sh7e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6-yMyFy8gyUgbFeiXofoT2YYitQfu_XU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755538625594-tursnu706pfnp56d7625pqj155k6sh7e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

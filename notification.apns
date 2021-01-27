@@ -1,0 +1,16 @@
+{
+    "Simulator Target Bundle": "com.sports.drive",
+    "aps": {
+        "alert": {
+            "title": "EXPO iOS Simulator PUSH",
+            "body": "It works!"
+        }
+    },
+    "experienceId": "@rduraj/example_app",
+    "body": {
+        "type": "IOS_PUSH",
+        "example": {
+          "exampleField": "text"
+        }
+    }
+}

@@ -4,7 +4,6 @@ import Button from '../reuseableComponents/button'
 import { colors,api } from '../constants'
 import {axios} from '../reuseableComponents/externalFunctions'
 import Toast from 'react-native-easy-toast'
-import Icon from 'react-native-vector-icons/AntDesign'
 import { color } from 'react-native-reanimated'
 export default class home extends Component {
     state={
@@ -101,24 +100,7 @@ export default class home extends Component {
     }
 }
 
-class CheckBox extends Component {
-    state = { 
-        isChecked:this.props.isChecked
-    }
-    onPress=()=>{
-        // this.setState({isChecked:!this.state.isChecked},
-        this.props.handleInput({name:this.props.name,val:this.props.value})
-    }
-    render() { 
-        var checked =this.props.checked==this.props.value
-        return (
-            <TouchableOpacity onPress={this.onPress} style={[styles.checkbox_container,checked&&{backgroundColor:colors.light_green}]}>
-               {checked&&<Icon name= "check" color={checked?colors.white : colors.grey} size={22}/>}
-                <Text style={[styles.checkbox_label,checked&&{color:colors.white,fontWeight:"bold"}]}>{this.props.text}</Text>
-            </TouchableOpacity>
-          );
-    }
-}
+
 
 
 class Field extends Component {

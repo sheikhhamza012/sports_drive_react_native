@@ -7,9 +7,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import SideDrawer from './app/navigation/sidedrawer'
 import imports from './app/imports'
+
 const Drawer = createDrawerNavigator();
 
 export default class App extends React.Component {
+  
   render() {
     return ( 
       <Provider store={store}>

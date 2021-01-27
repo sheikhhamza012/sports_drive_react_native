@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
-import  { Text, RefreshControl,TouchableOpacity,FlatList , View, ScrollView,StyleSheet,Image,TextInput, ImageBackground, ActivityIndicator, Platform, Dimensions} from 'react-native'
+import  { Text,Linking, RefreshControl,TouchableOpacity,FlatList , View, ScrollView,StyleSheet,Image,TextInput, ImageBackground, ActivityIndicator, Platform, Dimensions} from 'react-native'
 import Button from '../../reuseableComponents/button'
 import { colors, api } from '../../constants'
 // import MapView from 'react-native-maps'
 import Icon from 'react-native-vector-icons/AntDesign'
-import {axios} from '../../reuseableComponents/externalFunctions'
+import {axios,getPrice} from '../../reuseableComponents/externalFunctions'
 import DatepickerRange,{SingleDatepicker} from '../../reuseableComponents/react-native-range-datepicker';
 import moment from 'moment'
 import { color } from 'react-native-reanimated'
@@ -12,31 +12,48 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-easy-toast'
 import Rating from 'react-native-star-rating'
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-
+import { Switch } from 'react-native-paper';
+import {Card} from '../vendor/my_arena'
 export default class SportsMenu extends Component {
     state={
        isLoading:false,
+       isSubmitting:false,
        arena:{
 
        }
     }
 
     componentDidMount = ()=> {
-        axios('get',api.get_arena(this.props.booking.arena_id),null,true)
+        const {booking} = this.props
+        this.setState({isLoading:true,isSubmitting:true})
+        const params={
+            arena_booking_request:{
+                from_time: booking.date && booking.from_time? moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.from_time).format("HH:mm")) : null,
+                to_time: booking.date && booking.to_time? (moment(booking.to_time)>moment(booking.from_time) ? moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")): moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")).add(1,'day') ): null
+            }
+        }
+        console.log(params,">>>")
+        console.log(moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")).add(1,'day'),moment(booking.from_time),moment(booking.to_time),moment(booking.to_time)>moment(booking.from_time),">>>")
+        axios('post',api.get_arena_with_time(this.props.booking.arena_id),params,true)
         .then(({data})=>{
-            this.setState({isLoading:false})
+            this.setState({isLoading:false,isSubmitting:false})
             if(data.error){
                 this.refs.toast.show(data.msg)
                 return
             }
+
+            this.props.dispatch({type:"SET_BOOKING_PARAMS",key:"field_id",data:undefined})
             this.setState({arena:data.arena})
         })  
         .catch(e=>{
             console.log(e)
-            this.setState({isLoading:false})
+            this.setState({isLoading:false,isSubmitting:false})
         })
     }
-   
+    get_fields=()=>{
+        return (this.state.arena.groups??[]).filter(x=>x.name==this.props.current_sports)
+        
+    }
     getTimePlaceHolder=()=>{
         const {booking } = this.props
         if(booking.from_time){
@@ -49,15 +66,31 @@ export default class SportsMenu extends Component {
         
     }
     submit=()=>{
+        
         const {booking} = this.props
+        const price = this.getPrice()
+        if(!booking.date||!booking.from_time||!booking.to_time){
+            this.refs.toast.show("Please fill in the form to continue")
+            return
+        }
+        if(!booking.field_id){
+            this.refs.toast.show("Please select the place to play")
+            return
+        }
+        if(price=="N/A"){
+            this.refs.toast.show("Owner have not set the price for the selected hours yet")
+            return
+        }
         this.setState({isSubmitting:true})
         const params={
             arena_booking_request:{
-                from_time: moment(booking.date).format("YYYY-MM-DD ")+moment(booking.from_time).format("HH:mm"),
-                to_time: moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")
+                price:price,
+                from_time: booking.date && booking.from_time? moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.from_time).format("HH:mm")) : null,
+                to_time: booking.date && booking.to_time? (moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.from_time).format("HH:mm"))<moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")) ? moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")): moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")).add(1,'day') ): null
             }
         }
-        axios('post',api.book_arena(this.props.booking.arena_id),params,true)
+        // console.log(moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.from_time).format("HH:mm")),moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")).add(1,'days'),moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.from_time).format("HH:mm"))>moment(moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")),params)
+        axios('post',api.book_arena(this.props.booking.field_id),params,true)
         .then(({data})=>{
             this.setState({isSubmitting:false})
             if(data.error){
@@ -73,7 +106,48 @@ export default class SportsMenu extends Component {
             console.log(e)
         })
     }
+    open_google_maps = (lat,lng, name)=>{
+        const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+        const latLng = `${lat},${lng}`;
+        const label = name;
+        const url = Platform.select({
+            ios: `${scheme}${label}@${latLng}`,
+            android: `${scheme}${latLng}(${label})`
+        });
+
+
+        Linking.openURL(url); 
+    }
+    getPrice=()=>{
+
+        const group = this.get_fields()
+        return getPrice(group, this.props.booking)
+        
+    }
+    // update_fields_with_availabilty=()=>{
+    //     this.setState({isLoading:true,isSubmitting:true})
+    //     const params={
+    //         arena_booking_request:{
+    //             from_time: moment(booking.date).format("YYYY-MM-DD ")+moment(booking.from_time).format("HH:mm"),
+    //             to_time: moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")
+    //         }
+    //     }
+    //     axios('post',api.get_arena_with_time(this.props.booking.arena_id),params,true)
+    //     .then(({data})=>{
+    //         this.setState({isLoading:false,isSubmitting:false})
+    //         if(data.error){
+    //             this.refs.toast.show(data.msg)
+    //             return
+    //         }
+    //         this.setState({arena:data.arena})
+    //     })  
+    //     .catch(e=>{
+    //         console.log(e)
+    //         this.setState({isLoading:false,isSubmitting:false})
+    //     })
+    // }
     render() {
+        // console.log(moment.range(moment("2000-01-01 "+moment(this.props.booking.from_time).format("HH:mm")),moment("2000-01-01 "+moment(this.props.booking.to_time).format("HH:mm"))).duration()/1000/60/60)
         return (
             <ImageBackground style={styles.background} source={require('../../images/app_background.png')}>
                 <Toast 
@@ -84,17 +158,17 @@ export default class SportsMenu extends Component {
                <ScrollView style={{marginTop:130}} contentContainerStyle={styles.root}>
                     {/* <View style={{paddingHorizontal:50,backgroundColor:colors.black,paddingVertical:30}}>
                     </View> */}
-                    <View style={[styles.body,{paddingVertical:10}]}>
+                    {/* <View style={[styles.body,{paddingVertical:10}]}>
                         {this.state.isLoading&&<ActivityIndicator />}
-                    </View>     
-                    {!this.state.isLoading&&
-                        <>
+                    </View>      */}
+                    {/* {!this.state.isLoading&& */}
+                        {/* <> */}
                             <View style={styles.body}>
-                                <Info data={this.state.arena}/>
+                                <Info open_maps={()=>this.open_google_maps(this.state.arena.location?.coordinates?.lat,this.state.arena.location?.coordinates?.lng , this.state.arena.name)} data={{name:this.state.arena.name,rating:this.state.arena.rating,location:this.state.arena.location?.address}}/>
                             </View>     
                             <Carousel style={{width:Dimensions.get("screen").width,height:200,resizeMode:"cover",backgroundColor:"#333"}} images={[this.state.arena.image??'']}/>
-                        </>
-                    }
+                        {/* </> */}
+                    {/* } */}
                     <View style={styles.body}>
                         <View style={styles.bookingForm}>
                             <TouchableOpacity style={{flexDirection:"row",alignItems:"center",marginTop:10,alignSelf:"flex-end"}}>
@@ -109,11 +183,14 @@ export default class SportsMenu extends Component {
                                 <DateTimePickerModal
                                     isVisible={this.state.show_date}
                                     mode="date"
+                                    date={moment().toDate()}
                                     minimumDate={moment().toDate()}
                                     headerTextIOS="Select a Date"
-                                    onConfirm={(d)=>{
+                                    onConfirm={async(d)=>{
                                         this.setState({show_date:false})
-                                        this.props.dispatch({type:"SET_BOOKING_PARAMS",key:"date",data:d})
+                                        await this.props.dispatch({type:"SET_BOOKING_PARAMS",key:"date",data:d})
+                                        this.componentDidMount()
+
                                     }}
                                     onCancel={()=>this.setState({show_date:false})}
                                 />
@@ -130,6 +207,7 @@ export default class SportsMenu extends Component {
                                     date={moment().minute(0).toDate()}
                                     headerTextIOS="Select start time"
                                     onConfirm={(d)=>{
+
                                             this.setState({show_from_time:false,})
                                             this.props.dispatch({type:"SET_BOOKING_PARAMS",key:"from_time",data:d})
 
@@ -145,38 +223,75 @@ export default class SportsMenu extends Component {
                                     mode="time"
                                     headerTextIOS="Select end time"
                                     date={moment(this.props.booking.from_time).add(1,'hour').toDate()}
-                                    minimumDate={moment(this.props.booking.from_time).add(1,'hour').toDate()}
+                                    // minimumDate={moment(this.props.booking.from_time).add(1,'hour').toDate()}
                                     minuteInterval={30}
-                                    onConfirm={(d)=>{
-                                        if(d <= this.props.booking.from_time || d < moment(this.props.booking.from_time).add(1,'hour').toDate()){
-                                            alert("End time should at least be 1 hour after start time")
-                                            this.setState({show_to_time:false})
-                                            return
-                                        }
-                                        this.props.dispatch({type:"SET_BOOKING_PARAMS",key:"to_time",data:d})
-
+                                    onConfirm={async(d)=>{
+                                        // if(d <= this.props.booking.from_time || d < moment(this.props.booking.from_time).add(1,'hour').toDate()){
+                                        //     alert("End time should at least be 1 hour after start time")
+                                        //     this.setState({show_to_time:false})
+                                        //     return
+                                        // }
+                                        await this.props.dispatch({type:"SET_BOOKING_PARAMS",key:"to_time",data:d})
                                         this.setState({show_to_time:false,})
+                                        this.componentDidMount()
                                     }}
                                     onCancel={()=>this.setState({show_to_time:false})}
                                 />  
                             </TouchableOpacity>
-                            <Text style={{alignSelf:"flex-end",marginTop:10,fontWeight:"bold"}}>Total Amount: {this.state.arena.price??0}/-</Text>
+                            <Text style={{alignSelf:"flex-end",marginTop:10,fontWeight:"bold"}}>Total Amount: {this.getPrice()}/-</Text>
                         </View>
-                        <Button
-                            isLoading={this.state.isSubmitting}
-                            onPress={this.submit}
-                            placeholder={"Reserve"} 
-                            style={[styles.arenaButton,{alignSelf:"center",marginVertical:20}]} 
-                            placeholderStyle={{fontSize:11}} />
+                        
+                        <View>
+                            <Text style={{fontSize:16,marginVertical:10}}>Description</Text>
+                            <Text style={{marginBottom:20}}>Description</Text>
+                        </View>
+
+                        <View style={{flexDirection:"row",alignItems:"center"}}>
+                            <Text style={{fontSize:14,fontWeight:"bold"}}>Allow Individual Requests</Text><Switch value={true} onValueChange={()=>{}} color={colors.blue} style={{transform: [{ scaleX: .6 }, { scaleY: .6 }]}}/>
+                        </View>
+
+                        <View >
+                            {this.get_fields().map((x,id)=>
+                                <>
+                                <Text style={{color:colors.grey}}>Select {x.field_type[0].toUpperCase()}{x.field_type.substring(1)}s</Text>
+                                    <View style={{flexDirection:"row",flexWrap:"wrap",marginTop:10,justifyContent:"space-between"}}>
+                                    {x.fields.map((y,id)=>
+                                        <Card  
+                                            key = {id}
+                                            onPress={()=>{
+                                                if(!y.available){
+                                                    return
+                                                }
+                                                this.props.dispatch({type:"SET_BOOKING_PARAMS",key:"field_id",data:y.id})
+                                            }}
+                                            disabled={!y.available}
+                                            style={{marginHorizontal:0,backgroundColor:this.props.booking.field_id==y.id? colors.blue:colors.white}} 
+                                            textStyle={this.props.booking.field_id==y.id? {color:colors.white} : {}}
+                                            data= {{image:y.image,location:this.state.arena.location,name:y.name,rating:this.state.arena.rating}}
+                                        /> 
+                                    )}
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                            
                     </View>  
    
                 </ScrollView>
+                <View style={{padding:10,backgroundColor:colors.white}}>
+                    <Button
+                        isLoading={this.state.isSubmitting}
+                        onPress={this.submit}
+                        placeholder={"Reserve"} 
+                        style={[styles.arenaButton_submit,{alignSelf:"center",marginVertical:10}]} 
+                        placeholderStyle={{fontSize:14}} />
+                </View>
             </ImageBackground>
         )
     }
 }
 
-class Info extends Component {
+export class Info extends Component {
     render() {
         const {data} = this.props
         return (
@@ -202,7 +317,9 @@ class Info extends Component {
                     <Button
                         placeholder={"Show on Google Maps"} 
                         style={styles.arenaButton} 
-                        placeholderStyle={{fontSize:11}} />
+                        placeholderStyle={{fontSize:11}} 
+                        onPress={this.props.open_maps}
+                        />
 
                     <TouchableOpacity style={{marginLeft:10}}>
                         <Icon name="heart" color={colors.grey} size={20}/>
@@ -213,7 +330,7 @@ class Info extends Component {
         )
     }
 }
-class Carousel extends Component {
+export class Carousel extends Component {
     currentIndex=0
     next=()=>{
         let i = (this.props.images.length-1==this.currentIndex) ? (this.currentIndex=0) : (++this.currentIndex)
@@ -301,7 +418,8 @@ const styles=StyleSheet.create({
     },
     root:{
         flexGrow:1,
-        paddingTop:5,
+        paddingVertical:15,
+        backgroundColor:colors.white,
         // paddingHorizontal:30,
         alignItems:"stretch",
     },   
@@ -316,6 +434,12 @@ const styles=StyleSheet.create({
         borderRadius:4,
         height:30,
         width:150,
+        backgroundColor:colors.blue,
+    },
+    arenaButton_submit:{
+        borderRadius:10,
+        // height:30,
+        // width:150,
         backgroundColor:colors.blue,
     },
 })

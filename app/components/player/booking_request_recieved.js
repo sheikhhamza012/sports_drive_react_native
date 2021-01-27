@@ -13,11 +13,11 @@ export default class home extends Component {
         isAnimating: false
     };
     seq=[
-        require('../../images/booking_request_recieved/1.png'),
-        require('../../images/booking_request_recieved/2.png'),
-        require('../../images/booking_request_recieved/3.png'),
-        require('../../images/booking_request_recieved/4.png'),
-        require('../../images/booking_request_recieved/5.png')
+        require('../../images/booking_request_recieved/1.jpg'),
+        require('../../images/booking_request_recieved/2.jpg'),
+        require('../../images/booking_request_recieved/3.jpg'),
+        require('../../images/booking_request_recieved/4.jpg'),
+        require('../../images/booking_request_recieved/5.jpg')
     ]
     componentDidMount() {
         const that=this

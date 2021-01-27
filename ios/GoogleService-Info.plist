@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>755538625594-g1ujum4q118inh8sph0n5d1t5hjspd1l.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.755538625594-g1ujum4q118inh8sph0n5d1t5hjspd1l</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>755538625594-m1lv1dks1nmpp9tdpnc7ru4r6aemb1m1.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAIvNeKBIuWYLbGxqlkjBDPIWlWBxbqwD0</string>
+	<key>GCM_SENDER_ID</key>
+	<string>755538625594</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.sports.drive</string>
+	<key>PROJECT_ID</key>
+	<string>sports-drive</string>
+	<key>STORAGE_BUCKET</key>
+	<string>sports-drive.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:755538625594:ios:e8fa9aafaad6d3debf2103</string>
+</dict>
+</plist>

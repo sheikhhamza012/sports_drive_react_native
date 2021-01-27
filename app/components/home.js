@@ -4,7 +4,10 @@ import Button from '../reuseableComponents/button'
 import { colors } from '../constants'
 export default class home extends Component {
     open_sports_menu=(sports)=>{
-        this.props.dispatch({type:"SELECT_SPORTS",data:sports})
+        if(sports=="sports_menu"){
+            return
+        }
+        this.props.dispatch({type:"SET_SCREEN",key:"current_sports",data:sports})
         this.props.navigation.navigate("sports_menu")
     }
     render() {
@@ -26,19 +29,19 @@ export default class home extends Component {
                             borderColor:colors.white,
                             borderWidth:2,
                             backgroundColor:'rgba(5,54,122,255)'
-                        }}
+                        }} 
                     />
                     <View style={styles.row}>
-                        <MenuButton onPress={()=>this.open_sports_menu("Cricket")} placeholder="Cricket" imageStyle={{marginLeft:10,marginBottom:7}} source={require('../images/Sports-01.png')}/>
-                        <MenuButton onPress={()=>this.props.navigation.navigate("sports_menu")} placeholder="Football" imageStyle={{marginLeft:3,marginBottom:7}} source={require('../images/Sports-02.png')}/>
-                        <MenuButton onPress={()=>this.props.navigation.navigate("sports_menu")} placeholder="Basketball" imageStyle={{marginLeft:2,marginBottom:7}} source={require('../images/Sports-03.png')}/>
-                        <MenuButton onPress={()=>this.props.navigation.navigate("sports_menu")} placeholder="Badminton" imageStyle={{marginLeft:6,marginBottom:7}} source={require('../images/Sports-04.png')}/>
+                        <MenuButton onPress={()=>this.open_sports_menu("Outdoor")} placeholder="Cricket" imageStyle={{marginLeft:10,marginBottom:7}} source={require('../images/Sports-01.png')}/>
+                        <MenuButton onPress={()=>this.open_sports_menu("Outdoor")} placeholder="Football" imageStyle={{marginLeft:3,marginBottom:7}} source={require('../images/Sports-02.png')}/>
+                        <MenuButton onPress={()=>this.open_sports_menu("BasketBall")} placeholder="Basketball" imageStyle={{marginLeft:2,marginBottom:7}} source={require('../images/Sports-03.png')}/>
+                        <MenuButton onPress={()=>this.open_sports_menu("Badminton")} placeholder="Badminton" imageStyle={{marginLeft:6,marginBottom:7}} source={require('../images/Sports-04.png')}/>
                     </View>
                     <View style={styles.row}>
-                        <MenuButton onPress={()=>this.props.navigation.navigate("sports_menu")} placeholder="Squash" imageStyle={{marginLeft:0,marginBottom:7}} source={require('../images/Sports-05.png')}/>
-                        <MenuButton onPress={()=>this.props.navigation.navigate("sports_menu")} placeholder="Swimming" imageStyle={{marginLeft:0,marginBottom:7}} source={require('../images/Sports-06.png')}/>
-                        <MenuButton onPress={()=>this.props.navigation.navigate("sports_menu")} placeholder="Table Tennis" imageStyle={{marginLeft:2,marginBottom:7}} source={require('../images/Sports-07.png')}/>
-                        <MenuButton onPress={()=>this.props.navigation.navigate("sports_menu")} placeholder="Tennis" imageStyle={{marginLeft:3,marginBottom:7}} source={require('../images/Sports-08.png')}/>
+                        <MenuButton onPress={()=>this.open_sports_menu("Squash")} placeholder="Squash" imageStyle={{marginLeft:0,marginBottom:7}} source={require('../images/Sports-05.png')}/>
+                        <MenuButton onPress={()=>this.open_sports_menu("Swimming")} placeholder="Swimming" imageStyle={{marginLeft:0,marginBottom:7}} source={require('../images/Sports-06.png')}/>
+                        <MenuButton onPress={()=>this.open_sports_menu("Table Tennis")} placeholder="Table Tennis" imageStyle={{marginLeft:2,marginBottom:7}} source={require('../images/Sports-07.png')}/>
+                        <MenuButton onPress={()=>this.open_sports_menu("Tennis")} placeholder="Tennis" imageStyle={{marginLeft:3,marginBottom:7}} source={require('../images/Sports-08.png')}/>
                     </View>
                 </ScrollView>
             </ImageBackground>

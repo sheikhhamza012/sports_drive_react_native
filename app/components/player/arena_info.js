@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import  { Text, RefreshControl,TouchableOpacity,FlatList , View, ScrollView,StyleSheet,Image,TextInput, ImageBackground, ActivityIndicator, Platform, Dimensions} from 'react-native'
 import Button from '../../reuseableComponents/button'
-import { colors, api } from '../../constants'
+import { colors, api, global_styles } from '../../constants'
 // import MapView from 'react-native-maps'
 import {axios} from '../../reuseableComponents/externalFunctions'
 import DatepickerRange,{SingleDatepicker} from '../../reuseableComponents/react-native-range-datepicker';
@@ -12,71 +12,80 @@ import Toast from 'react-native-easy-toast'
 import Rating from 'react-native-star-rating'
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import {Field} from '../signup'
+// import nav from '@react-native-community/geolocation'
+navigator.geolocation = require('@react-native-community/geolocation')
 export default class SportsMenu extends Component {
+
     state={
-       isLoading:false,
-       vendor:{
-
-       }
-    }
-
-    componentDidMount = ()=> {
+        game_index:this.props.become_a_vendor.game_index,
+        isSubmitting:false,
+        error : false,
         
     }
+    
+    componentDidMount = ()=> {
+        const { become_a_vendor } =this.props
+        let game = this.props.become_a_vendor.checkedGames[become_a_vendor.game_index]
+        this.props.navigation.setParams({title: `Become A Vendor` ,subtitle:game.name})
+    }
     handleInput=x=>{
-        const field = x.name.split('-')
-        if(field[0]=="arena_name"){
-            if(!this.state.vendor['arena_name']){
-                this.state.vendor['arena_name'] = []
-            }
-            this.state.vendor['arena_name'][field[1]] = x.val
-            this.forceUpdate()
-            return
+        if(this.state.error){
+            this.setState({error:false})
         }
-        this.setState({vendor:{...this.state.vendor,[x.name]:x.val},errors:{...this.state.errors, [x.name]:false}})
+        const {become_a_vendor} = this.props
+        let games = become_a_vendor.checkedGames
+        games[this.state.game_index] = {...games[this.state.game_index],[x.name]:x.val}
+        this.props.dispatch({type:"SET_VALUE",screen:"become_a_vendor",key:"checkedGames",data:games})
     }
     
     submit=()=>{
-        // const {booking} = this.props
-        // this.setState({isSubmitting:true})
-        // const params={
-        //     arena_booking_request:{
-        //         from_time: moment(booking.date).format("YYYY-MM-DD ")+moment(booking.from_time).format("HH:mm"),
-        //         to_time: moment(booking.date).format("YYYY-MM-DD ")+moment(booking.to_time).format("HH:mm")
-        //     }
-        // }
-        // axios('post',api.book_arena(this.props.booking.arena_id),params,true)
-        // .then(({data})=>{
-        //     this.setState({isSubmitting:false})
-        //     if(data.error){
-        //         alert(data.msg)
-        //         this.setState({showModal:true})
-        //         return
-        //     }
-        //     this.props.navigation.navigate("booking_request_recieved")
-        // })
-        // .catch(e=>{
-        //     this.setState({isSubmitting:false})
-        //     console.log(e)
-        // })
+        const {become_a_vendor} = this.props
+        let game = become_a_vendor.checkedGames[this.state.game_index]
+        if(!game.capacity){
+            this.setState({error:true})
+            this.refs.toast.show("Please add the capacity before moving to next step")
+            return
+        }
+        this.setState({isSubmitting:true})
+        const params={
+            "groups": become_a_vendor.checkedGames, 
+            "id_card": become_a_vendor.id_card, 
+            "location": become_a_vendor.location, 
+            "name_of_arena": become_a_vendor.name_of_arena
+        }
+        axios('post',api.become_a_vendor,params,true)
+        .then(({data})=>{
+            this.setState({isSubmitting:false,game_index:0})
+            if(data.error){
+                this.refs.toast.show(data.msg)
+                return
+            }
+            this.props.dispatch({type:"SET_USER",data:data.user})
+            this.props.dispatch({type:"RESET_FORMS"})
+            this.props.navigation.navigate("become_a_vendor")
+        })
+        .catch(e=>{
+            this.setState({isSubmitting:false})
+            console.log(e)
+        })
+    }
+    next=()=>{
+        const {become_a_vendor} = this.props
+        let game = become_a_vendor.checkedGames[this.state.game_index]
+        if(!game.capacity){
+            this.setState({error:true})
+            this.refs.toast.show("Please add the capacity before moving to next step")
+            return
+        }
+        // let games = become_a_vendor.checkedGames
+        // this.props.dispatch({type:"SET_VALUE",screen:"become_a_vendor",key:"checkedGames",data:games})
+        this.props.dispatch({type:"SET_VALUE",screen:"become_a_vendor",key:"game_index",data:this.state.game_index+1})
+        this.props.navigation.push("arena_info")
+        
     }
     render() {
-        console.log('')
-        var arenas_fields = []
-        for(var i=0;i<(this.state.vendor.no_of_arenas??0);i++){
-            arenas_fields.push(
-                <Field 
-                    refs={r=>this.id_card=r}
-                    focusOn={()=>this.no_of_arenas}
-                    value={(this.state.vendor.arena_name?this.state.vendor.arena_name[i] : undefined)}
-                    handleInput={this.handleInput} 
-                    name={`arena_name-${i}`}
-                    placeholder={`Name of Arena ${i+1}`}
-                    placeholderColor={colors.grey}
-                    fieldStyle={styles.fieldStyle}
-                />
-            )
-        }
+        const place = ((this.props.become_a_vendor.checkedGames[this.state.game_index]??{}).place??"ground")
+        const str = place[0].toUpperCase()+place.substring(1)+"s"
         return (
             <>
                 <Toast 
@@ -84,40 +93,43 @@ export default class SportsMenu extends Component {
                     position='bottom'
                     positionValue={200}
                 />
-                <ScrollView contentContainerStyle={styles.root} refreshControl={<RefreshControl refreshing={this.state.isLoading}/>}>
-                    <Field 
-                        refs={r=>this.id_card=r}
-                        focusOn={()=>this.no_of_arenas}
-                        value={this.state.vendor.id_card}
+                <ScrollView keyboardShouldPersistTaps='always' listViewDisplayed={false} contentContainerStyle={[styles.root,global_styles.headerPadding]} refreshControl={<RefreshControl refreshing={this.state.isLoading}/>}>
+                   
+                    
+
+                    {/* <Field 
+                        refs={r=>this.location=r}
+                        focusOn={this.submit}
+                        value={this.props.become_a_vendor.arenas[this.props.become_a_vendor.arena_index].location}
                         handleInput={this.handleInput} 
-                        name="id_card" 
-                        placeholder="ID Card Number" 
+                        name="location" 
+                        placeholder="Location (Google Maps)" 
                         placeholderColor={colors.black}
                         fieldStyle={styles.fieldStyle}
-                        keyboardType="numeric"
-                        />
-                    
+                    /> */}
+
                     <Field 
-                        refs={r=>this.no_of_arenas=r}
-                        focusOn={this.submit}
-                        value={this.state.vendor.no_of_arenas}
+                        error={this.state.error}
+                        refs={r=>this.capacity=r}
+                        onSubmitEditing={this.state.game_index+1 == this.props.become_a_vendor.checkedGames.length? this.submit : this.next}
+                        value={(this.props.become_a_vendor.checkedGames[this.state.game_index]??{}).capacity}
                         handleInput={this.handleInput} 
-                        name="no_of_arenas" 
-                        placeholder="Number of Arenas" 
+                        name="capacity" 
+                        placeholder={`Number Of ${str}`}
                         placeholderColor={colors.black}
                         fieldStyle={styles.fieldStyle}
                         keyboardType="numeric"
                     />
-                   {arenas_fields.length>0&&
-                       <>
-                        <View style={styles.header}>
-                            <Text style={{fontSize:12}}>Name of Arenas</Text>
-                        </View>
-                       {arenas_fields}
-                        </>}
-                    <Button isLoading={this.state.isSubmitting} onPress={this.submit} iconRight="right" style={styles.button}/>
+                   {this.state.game_index+1 == this.props.become_a_vendor.checkedGames.length?
+                        
+                        <Button isLoading={this.state.isSubmitting} onPress={this.submit} placeholder="Submit" style={[styles.button,{width:"100%"}]}/>
+                        :
+                        <Button isLoading={this.state.isSubmitting} onPress={this.next} iconRight="right" style={styles.button}/>
+                    
+                    }
 
                 </ScrollView>
+                
             </>
         )
     }

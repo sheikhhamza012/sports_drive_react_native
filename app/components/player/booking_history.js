@@ -95,7 +95,7 @@ export default class SportsMenu extends Component {
     }
 }
 
-class Item extends Component {
+export class Item extends Component {
     render() {
         const {data} = this.props
         return (
@@ -106,8 +106,8 @@ class Item extends Component {
                     <Text style={styles.arena_detail}>Time Slot {moment(data.from_time).format("hh:mm a")} to {moment(data.to_time).format("hh:mm a")}</Text>
                 </View>
                 <View>
-                    {(this.props.showButton??true)&&<Text style={{color:colors.grey,textAlign:"right"}}>Rs {data.price}</Text>}
-                    {(this.props.showPrice??true)&&<Button placeholder={"REBOOK"} onPress={this.searchByAvailability} style={styles.arenaButton} placeholderStyle={{fontSize:10}} />}
+                    {(this.props.showPrice??true)&&<Text style={{color:colors.grey,textAlign:"right"}}>Rs {data.price}</Text>}
+                    {(this.props.showButton??true)&&<Button placeholder={"REBOOK"} onPress={this.searchByAvailability} style={styles.arenaButton} placeholderStyle={{fontSize:10}} />}
 
                 </View>
             </View>

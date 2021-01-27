@@ -1,9 +1,12 @@
 import React ,{ Component } from 'react';
 import { View,Image,StyleSheet,ImageBackground ,AsyncStorage,Animated, Dimensions} from 'react-native';
+import {axios} from './reuseableComponents/externalFunctions'
+import {colors,api} from './constants'
 
 class App extends Component {
     state = { position: new Animated.Value(100) }
-    componentDidMount() {
+    componentDidMount = async()=> {
+        
         Animated.spring(
             this.state.position,
             {
@@ -14,6 +17,35 @@ class App extends Component {
               useNativeDriver:false
             }
           ).start();
+
+
+
+
+        const token = await AsyncStorage.getItem("token") 
+        if(token){
+            this.props.dispatch({type:"IS_LOGGING_IN",data:true})
+            axios('get',api.get_user,null,true)
+            .then(async({data})=>{
+                console.log(data)
+                this.props.dispatch({type:"IS_LOGGING_IN",data:false})
+                if(data.error){
+                    await AsyncStorage.clear()
+                    this.props.dispatch({type:"LOGOUT",data:this.props.user.id})
+                    return
+                }
+                this.props.dispatch({type:"SET_USER",data:data.user})
+                
+            })
+            .catch(x=>{
+                this.props.dispatch({type:"IS_LOGGING_IN",data:false})
+                console.log(x)
+            })
+        }else{
+            setTimeout(async()=>{
+                this.props.dispatch({type:"IS_LOGGING_IN",data:false})
+            },3000 )
+        }
+          
     }
     render() { 
         return ( 

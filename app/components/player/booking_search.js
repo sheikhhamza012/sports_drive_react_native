@@ -6,7 +6,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 // import MapView from 'react-native-maps'
 import Icon from 'react-native-vector-icons/AntDesign'
 import LineIcon from 'react-native-vector-icons/SimpleLineIcons'
-import {axios,trim} from '../../reuseableComponents/externalFunctions'
+import {axios,trim,getPrice} from '../../reuseableComponents/externalFunctions'
 import Rating from 'react-native-star-rating'
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from 'moment'
@@ -24,7 +24,8 @@ export default class SportsMenu extends Component {
     componentDidMount = async()=> {
         this.setState({isLoading:true})
         const params = {
-                keyword: this.state.keyword
+                keyword: this.state.keyword,
+                group_name: this.props.current_sports
         }
         const res = await axios('post',api.search,params,true)
         this.setState({arenas:res.data.arenas??[], isLoading:false})
@@ -91,8 +92,9 @@ export default class SportsMenu extends Component {
         this.setState({isLoading:true})
         const params ={
             location:location,
-            from_time:moment(date).format("YYYY-MM-DD")+" "+moment(from_time).format("HH:mm"),
-            to_time:moment(date).format("YYYY-MM-DD")+" "+moment(to_time).format("HH:mm"),
+            group_name:this.props.current_sports,
+            from_time:moment(moment(date).format("YYYY-MM-DD")+" "+moment(from_time).format("HH:mm")).toDate(),
+            to_time:moment(moment(date).format("YYYY-MM-DD")+" "+moment(to_time).format("HH:mm")).toDate(),
         }
         axios('post',api.search_by_availability,params,true)
         .then(({data})=>{
@@ -109,6 +111,7 @@ export default class SportsMenu extends Component {
         })
     }
     renderSearchForm=()=>{
+
         return(
             <>
                 
@@ -136,8 +139,9 @@ export default class SportsMenu extends Component {
                         mode="time"
                         headerTextIOS="Select start time"
                         date={moment().minute(0).toDate()}
+                        minuteInterval={30}
+
                         onConfirm={(d)=>{
-                                console.log(moment(d).utc())
                                 this.setState({
                                     show_from_time:false,
                                     search:{
@@ -157,12 +161,12 @@ export default class SportsMenu extends Component {
                         mode="time"
                         headerTextIOS="Select end time"
                         date={moment(this.state.search.from_time).add(1,'hour').toDate()}
-                        minimumDate={moment(this.state.search.from_time).add(1,'hour').toDate()}
+                        // minimumDate={moment(this.state.search.from_time).add(1,'hour').toDate()}
                         minuteInterval={30}
                         onConfirm={(d)=>{
-                            if(d <= this.state.search.from_time || d < moment(this.props.booking.from_time).add(1,'hour').toDate()){
+                            if( moment.range(moment(this.state.search.from_time), moment(this.state.search.from_time)> moment(d)? moment(d).add(1,'days') :  moment(d)).duration()/1000/60/60<1){
                                 this.setState({show_to_time:false})
-                                alert("End time should at least be 1 hour after start time")
+                                alert("Booking should atleast be an hour long")
                                 return
                             }
                             this.setState({
@@ -182,7 +186,7 @@ export default class SportsMenu extends Component {
         )
     }
     render() {
-        this.props.booking.from_time
+        console.log(this.props.current_sports)
         return (
             <ImageBackground style={styles.background} source={require('../../images/app_background.png')}>
                 <Toast 
@@ -206,13 +210,11 @@ export default class SportsMenu extends Component {
                             {this.state.arenas.length==0&&<Text style={{margin:10,textAlign:"center"}} >No records found</Text>}
                             {this.state.arenas.map(x=>
                                 <Arena 
-                                    id={x.id}
+                                    arena={x}
                                     key={x.id}
                                     onPress={this.selectArena}
-                                    // onPress={()=>{}}
-                                    name={x.name} 
-                                    location={x.location} 
-                                    image = {x.image}
+                                    current_sports={this.props.current_sports}
+                                    search_params={this.state.search}
                                 />
                             )}
                         </ScrollView>
@@ -230,7 +232,9 @@ export class Arena extends Component {
     }
 
     render() {
-        
+        const {id,name,image,rating} = this.props.arena
+        const{address:location} = this.props.arena.location
+        const groups = this.props.arena.groups.filter(x=>x.name==this.props.current_sports)
         return (
             <View 
             // <TouchableOpacity 
@@ -238,13 +242,13 @@ export class Arena extends Component {
                 style={styles.arenaContainer}>
                 
                 <View style={{flexDirection:"row"}}>
-                    <Image source={{uri:this.props.image}} style={styles.arenaPic}/>
+                    <Image source={{uri:image}} style={styles.arenaPic}/>
                     <View style={styles.arenaRightHalf}>
                         <View style={styles.arenaDetailContainer}>
                             <View style={styles.arenaDetail}>
-                                <Text style={{fontWeight:"bold"}}>{this.props.name}</Text>
-                                <Text style={{color:colors.grey}} >{trim(this.props.location,28)}</Text>
-                                <Text style={styles.price}>Price: {"2000/- to 3000/-"} </Text>
+                                <Text style={{fontWeight:"bold"}}>{name}</Text>
+                                <Text style={{color:colors.grey}} >{trim(location,28)}</Text>
+                                <Text style={styles.price}>Price: {getPrice(groups,this.props.search_params)}/- </Text>
                             </View>
                             <TouchableOpacity style={styles.heart}>
                                 <Icon name="heart" color={colors.blue} size={20}/>
@@ -259,7 +263,7 @@ export class Arena extends Component {
                                 halfStar={'star-half'}
                                 iconSet={'FontAwesome'}
                                 maxStars={5}
-                                rating={this.props.rating??5}
+                                rating={rating??5}
                                 // selectedStar={(rating) => this.onStarRatingPress(rating)}
                                 starSize={15}
                                 fullStarColor={colors.grey}
@@ -272,7 +276,7 @@ export class Arena extends Component {
                                     style={styles.arenaButton} 
                                     placeholderStyle={{fontSize:8}} />
                                 <Button 
-                                    onPress={()=>this.props.onPress(this.props.id)}
+                                    onPress={()=>this.props.onPress(id)}
                                     placeholder={"Book Now"}
                                     style={styles.arenaButton} 
                                     placeholderStyle={{fontSize:8}} 

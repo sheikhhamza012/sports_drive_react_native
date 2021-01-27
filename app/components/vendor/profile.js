@@ -2,23 +2,25 @@ import React, { Component } from 'react'
 import  { Text , View, ScrollView,StyleSheet,Image, ImageBackground, ActivityIndicator} from 'react-native'
 import Button from '../../reuseableComponents/button'
 import { colors,api } from '../../constants'
+import {axios} from '../../reuseableComponents/externalFunctions'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import Rating from 'react-native-star-rating'
 import {Arena} from '../player/booking_search'
 import moment from 'moment'
-import {axios} from '../../reuseableComponents/externalFunctions'
+import {Card} from './my_arena'
 export default class Profile extends Component {
-    state={}
+
+    state={isLoading:true}
     componentDidMount = async()=> {
         this.setState({isLoading:true})
-        const res = await axios('get',api.arena_booking_requests,null,true)
+        const res = await axios('get',api.my_arenas,null,true)
+        console.log(res.data)
         this.setState({isLoading:false})
-        this.props.dispatch({type:"MY_ARENA_BOOKING_REQUESTS",data:res.data.requests??[]})
+        this.props.dispatch({type:"SET_SCREEN",key:"my_arena",data:res.data.arena??[]})
     }
-
     render() {
-        console.log(this.props.user)
+        console.log(this.props.my_arena)
 
         return (
             <ImageBackground style={styles.background} source={require('../../images/app_background.png')}>
@@ -33,8 +35,7 @@ export default class Profile extends Component {
                         <View style={styles.row}>
                             <View>
                                 <Text style={styles.nameText}>{this.props.user.first_name} {this.props.user.last_name}</Text>
-                                {this.props.user.player_of&&<Text style={styles.nameText}>{this.props.user.player_of}er</Text>}
-                                {!this.props.user.player_of&&<Text style={[styles.nameText,{fontWeight:"normal",color:colors.grey}]}>Edit the sports you play</Text>}
+                                <Text style={styles.nameText}>{this.props.user.email} | {this.props.user.phone}</Text>
                                 
                                 <Text style={[styles.nameText,{fontWeight:"normal"}]}>{this.props.user.city}</Text>
                             </View>
@@ -53,51 +54,21 @@ export default class Profile extends Component {
                                 <Icon name="circle-edit-outline" color={colors.white} size={22}/> 
                             </TouchableOpacity>
                         </View>
-                        <View style={styles.row}>
-                            <View>
-                                <Text style={styles.nameText}>Featured</Text>
-                                {this.props.user.featured&&<Text style={[styles.nameText,{fontWeight:"normal"}]}>{this.props.user.featured}</Text>}
-                                {!this.props.user.featured&&<Text style={[styles.nameText,{fontWeight:"normal",color:colors.grey}]}>Your featured tab is empty</Text>}
-                            </View>
-                            <TouchableOpacity onPress={()=>this.props.navigation.navigate("update_featured")}>
-                                <Icon name="circle-edit-outline" color={colors.white} size={22}/> 
-                            </TouchableOpacity>
-                        </View>
+                        
 
                         <View style={styles.score_container}>
-                            <Text >
-                                Your Dashboard
-                            </Text>
                             <View style={styles.row}>
-                                <View style={styles.card}> 
-                                    <Text style={styles.score}>14</Text>
-                                    <Text style={styles.score_type}>Total Games</Text>
+                                <View>
+                                    <Text >Arena</Text>
                                 </View>
-                                <View style={styles.card}> 
-                                    <Text style={styles.score}>14</Text>
-                                    <Text style={styles.score_type}>Winner</Text>
-                                </View>
-                                <View style={styles.card}> 
-                                    <Text style={styles.score}>14</Text>
-                                    <Text style={styles.score_type}>Invitations</Text>
-                                </View>
+                                <TouchableOpacity onPress={()=>this.props.navigation.navigate("update_about")}>
+                                    <Icon name="circle-edit-outline" color={colors.blue} size={22}/> 
+                                </TouchableOpacity>
                             </View>
+                            <Card data = {{image:this.props.my_arena.image,location:(this.props.my_arena.location??{}),name:this.props.my_arena.name,rating:this.props.my_arena.rating}}/>   
+
                         </View>
 
-                        <Rating
-                            disabled={true}
-                            emptyStar={'star-o'}
-                            fullStar={'star'}
-                            halfStar={'star-half'}
-                            iconSet={'FontAwesome'}
-                            maxStars={5}
-                            rating={this.props.user.rating}
-                            // selectedStar={(rating) => this.onStarRatingPress(rating)}
-                            starSize={22}
-                            fullStarColor={colors.white}
-                            emptyStarColor={colors.yellow}
-                            containerStyle={{paddingVertical:20,paddingHorizontal:100}}
-                        />
 
                     </View>
                     {/* <View style={[styles.body,styles.requestContainer]}>
@@ -153,8 +124,8 @@ const styles=StyleSheet.create({
     score_container:{
         backgroundColor:colors.light_grey,
         borderRadius:4,
-        padding:10,
-        paddingBottom:0
+        padding:20,
+        paddingBottom:10
     },
     row:{
         flexDirection:"row",
