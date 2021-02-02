@@ -40,7 +40,7 @@ export default class index extends Component {
             <ScrollView contentContainerStyle={styles.root} refreshControl={<RefreshControl refreshing={this.state.isLoading} onRefresh={this.componentDidMount}/>}>
                 {this.get_data().map(x=>
                     <Item 
-                    // onPress={()=>this.props.navigation.navigate('view_order',{id:x.request.id})}
+                    onPress={()=>this.props.navigation.navigate('view_order',{id:x.request.id})}
                     showButton={false}  data={x} />
                 )}
 

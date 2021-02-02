@@ -7,6 +7,7 @@ import Toast from 'react-native-easy-toast'
 import moment from 'moment'
 import messaging from '@react-native-firebase/messaging';
 import { ActivityIndicator } from 'react-native-paper'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 export default class index extends Component {
     state={
@@ -35,7 +36,7 @@ export default class index extends Component {
     }
     renderList = ()=>{
         return(
-           this.props.pending_booking_requests.map((x,id)=> <Item reload={this.componentDidMount} key={id} data={{username:`${x.user.first_name} ${x.user.last_name}`, from_time: x.request.from_time,to_time: x.request.to_time, field: x.field.field_type,id: x.request.id}}/>)
+           this.props.pending_booking_requests.map((x,id)=> <Item onPress={()=>this.props.navigation.navigate("show_pending_booking_requests",{id:x.request.id})} reload={this.componentDidMount} key={id} data={{username:`${x.user.first_name} ${x.user.last_name}`, from_time: x.request.from_time,to_time: x.request.to_time, field_name: x.field.name,id: x.request.id}}/>)
         )
     }
     render() {
@@ -53,43 +54,44 @@ export default class index extends Component {
         )
     }
 }
+export const accept=(id,ref,status="Accepted")=>{
+    ref.setState({isLoading:true})
+    axios('patch',api.update_booking_requests(id),{status:status},true)
+        .then(async({data})=>{
+            ref.setState({isLoading:false})
+            if(data.error){
+                alert(data.msg)
+                return
+            }
+            ref.props.reload()
+            
+        })
+        .catch(x=>{
+            ref.setState({isLoading:false})
+            console.log(x)
+        })
+}
 class Item extends Component {
     state={}
-    accept=(id)=>{
-        this.setState({isLoading:true})
-        axios('patch',api.update_booking_requests(id),{status:"Accepted"},true)
-            .then(async({data})=>{
-                this.setState({isLoading:false})
-                if(data.error){
-                    alert(data.msg)
-                    return
-                }
-                this.props.reload()
-                
-            })
-            .catch(x=>{
-                this.setState({isLoading:false})
-                console.log(x)
-            })
-    }
+    
     render() {
         const {data} = this.props
         return (
-            <View style={styles.itemContainer}>
+            <TouchableOpacity onPress={this.props.onPress} style={styles.itemContainer}>
                 <View style={{flex:1}}>
 
                     <Text style={styles.title}> {data.username}  {data.id}</Text>
                     <Text style={styles.subtitle}> Date: {moment(data.from_time).format("DD-MM-YYYY")} </Text>
                     <Text style={styles.subtitle}> Time: {moment(data.from_time).format("hh:mm a")} to {moment(data.to_time).format("hh:mm a")}</Text>
-                    <Text style={styles.subtitle}> {data.field} </Text>
+                    <Text style={styles.subtitle}> {data.field_name} </Text>
                 </View>
                 {this.state.isLoading?
                     <ActivityIndicator />
                 :
 
-                    <Button  placeholder={"ACCEPT"} onPress={()=>this.accept(data.id)} style={styles.arenaButton} placeholderStyle={{fontSize:10,color:colors.blue}} />
+                    <Button  placeholder={"ACCEPT"} onPress={()=>accept(data.id,this)} style={styles.arenaButton} placeholderStyle={{fontSize:10,color:colors.blue}} />
                 }
-            </View>
+            </TouchableOpacity>
         )
     }
 }

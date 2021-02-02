@@ -20,28 +20,42 @@ const Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
+export const fetch_request_list = (props)=>axios('get',api.pending_requests,null,true)
+  .then(async({data})=>{
+      if(!data.error){
+        props.dispatch({type:"SET_SCREEN", key:'pending_booking_requests' , data:data.requests??[]})
+      }
+  }).catch(x=>console.log(x,"error in notification recieved"))
+
+export const get_active_request = (props)=>axios('get',api.get_active_request,null,true)
+  .then(async({data})=>{
+    if(data.error){
+        return
+    }
+    props.dispatch({type:"SET_ACTIVE_REQUEST",data:data.request})
+  })
+.catch(x=>console.log(x))
+
 
 class App extends Component {
   state = { isLoggingIn:true, isLoggedIn:false }
   
-
   componentDidMount=()=>{
-    let fetch_request_list =()=>axios('get',api.pending_requests,null,true)
-                                .then(async({data})=>{
-                                    if(!data.error){
-                                      this.props.dispatch({type:"SET_SCREEN", key:'pending_booking_requests' , data:data.requests??[]})
-                                    }
-                                }).catch(x=>console.log(x))
+    // let fetch_request_list =()=>axios('get',api.pending_requests,null,true)
+    //                             .then(async({data})=>{
+    //                               alert()
+    //                                 if(!data.error){
+    //                                   alert(JSON.stringify(data))
+    //                                   this.props.dispatch({type:"SET_SCREEN", key:'pending_booking_requests' , data:data.requests??[]})
+    //                                 }
+    //                             }).catch(x=>console.log(x,"error in notification recieved"))
 
-    
-    let request_accepted = (message)=>alert(JSON.stringify(message))
     let callback = (message) => {
-      console.log(message.data.type)
       if(message.data.type == notification_types.BOOKING_REQUEST_RECIEVED){
-        fetch_request_list()
+        fetch_request_list(this.props)
       }
       if(message.data.type == notification_types.BOOKING_REQUEST_ACCEPTED){
-        request_accepted(message)
+        get_active_request(this.props)
       }
 
     }
@@ -184,6 +198,7 @@ class App extends Component {
         <Stack.Screen name="debug" component={imports.player.debug} options={{headerTransparent:false}}/>
         <Stack.Screen name="booking_details" component={imports.player.booking_details} options={this.header}/>
         <Stack.Screen name="booking_history" component={imports.player.booking_history} options={{headerShown:false}}/>
+        <Stack.Screen name="create_team" initialParams={{title:"Make Your Own Team"}} component={imports.player.create_team.index} options={this.blue_header}/>
           {this.props.user.vendor_detail?
             <Stack.Screen name="become_a_vendor" component={imports.player.vendor_request_recieved}  options={{headerShown:false}}/>
             :
@@ -193,7 +208,14 @@ class App extends Component {
               <Stack.Screen name="select_sports" component={imports.player.select_sports} initialParams={{title:"Become A Vendor", subtitle: "Select Sports"}} options={this.blue_header}/>
             </> 
           }
-        <Stack.Screen name="booking_request_recieved" component={imports.player.booking_request_recieved} options={{headerShown:false}} />
+        <>
+          {
+            this.props.activeBooking && this.props.activeBooking.status == "Accepted"?
+              <Stack.Screen name="booking_request_recieved" component={imports.player.booking_request_accepted} options={{headerShown:false}} />
+            :
+              <Stack.Screen name="booking_request_recieved" component={imports.player.booking_request_recieved} options={{headerShown:false}} />
+          }
+        </>
         <Stack.Screen name="profile" component={imports.player.profile} options={this.header}/>
       </>
     )
@@ -236,8 +258,11 @@ class App extends Component {
       return this.auth_routes()
     }else {
       return (
-        this.props.pending_booking_requests.length>0?
+        this.props.pending_booking_requests.length>0 ?
+        <>
           <Stack.Screen name="pending_booking_requests" component={imports.vendor.pending_booking_requests.index} options={{headerShown:false}}/>
+          <Stack.Screen name="show_pending_booking_requests" component={imports.vendor.pending_booking_requests.show} options={{headerShown:false}}/>
+        </>
         :
         // <>
           // {this.props.pending_booking_requests.length==0&&
@@ -315,22 +340,13 @@ class ActiveBooking extends Component {
   componentDidMount=async()=>{
     const token = await AsyncStorage.getItem("token")
     if(token){
-      axios('get',api.get_active_request,null,true)
-      .then(async({data})=>{
-        if(data.error){
-            return
-        }
-        this.props.dispatch({type:"SET_ACTIVE_REQUEST",data:data.request})
-      })
-      .catch(x=>{
-          console.log(x)
-      })
+      get_active_request(this.props)
     }
   }
   render() {
     return (
       this.props.activeBooking&&this.props.current_view=="player"&&this.props.pending_booking_requests.length==0?
-      <TouchableOpacity style={styles.activeRequest}>
+      <TouchableOpacity style={styles.activeRequest} onPress={()=>this.props.navigation.navigate('booking_request_recieved')}>
         <View style={styles.row}>
           <Text style={{fontWeight:"bold"}}> {this.props.activeBooking.arena.name} </Text>
           <MIcon name="keyboard-arrow-up" color={colors.black} size={18}/>

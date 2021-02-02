@@ -18,7 +18,7 @@ export default class my_arenas extends Component {
     update_group=(id,params)=>{
         params={group:params}
         this.setState({is_updating_instant_booking: true})
-        axios('post',api.update_group(id),params,true)
+        axios('patch',api.update_group(id),params,true)
         .then(({data})=>{
             this.setState({is_updating_instant_booking:false})
             if(data.error){

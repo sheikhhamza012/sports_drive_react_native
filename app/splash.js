@@ -2,11 +2,13 @@ import React ,{ Component } from 'react';
 import { View,Image,StyleSheet,ImageBackground ,AsyncStorage,Animated, Dimensions} from 'react-native';
 import {axios} from './reuseableComponents/externalFunctions'
 import {colors,api} from './constants'
-
+import {fetch_request_list} from './navigation'
 class App extends Component {
     state = { position: new Animated.Value(100) }
     componentDidMount = async()=> {
-        
+        if(this.props.current_view == "vendor"){
+            fetch_request_list(this.props)
+        }
         Animated.spring(
             this.state.position,
             {

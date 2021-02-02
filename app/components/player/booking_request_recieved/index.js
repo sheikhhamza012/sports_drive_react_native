@@ -1,11 +1,6 @@
 import React, { Component } from 'react'
 import  { Text ,TouchableOpacity, View, ScrollView,StyleSheet,Image, ImageBackground, AsyncStorage, ActivityIndicator} from 'react-native'
-import Button from '../../reuseableComponents/button'
-import { colors,api } from '../../constants'
-import {axios} from '../../reuseableComponents/externalFunctions'
-import Toast from 'react-native-easy-toast'
-import {Field} from '../signup'
-import DropDownPicker from 'react-native-dropdown-picker';
+import { colors,api } from '../../../constants'
 
 export default class home extends Component {
     state = {
@@ -13,11 +8,11 @@ export default class home extends Component {
         isAnimating: false
     };
     seq=[
-        require('../../images/booking_request_recieved/1.jpg'),
-        require('../../images/booking_request_recieved/2.jpg'),
-        require('../../images/booking_request_recieved/3.jpg'),
-        require('../../images/booking_request_recieved/4.jpg'),
-        require('../../images/booking_request_recieved/5.jpg')
+        require('../../../images/booking_request_recieved/1.jpg'),
+        require('../../../images/booking_request_recieved/2.jpg'),
+        require('../../../images/booking_request_recieved/3.jpg'),
+        require('../../../images/booking_request_recieved/4.jpg'),
+        require('../../../images/booking_request_recieved/5.jpg')
     ]
     componentDidMount() {
         const that=this

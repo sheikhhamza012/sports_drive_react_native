@@ -28,6 +28,7 @@ export default class SportsMenu extends Component {
                     />
                     <Button 
                         placeholder="Make Your Own Team" 
+                        onPress={()=>this.props.navigation.navigate("create_team")}
                         placeholderStyle={styles.button_placeholder}
                         style={styles.button}
                     />

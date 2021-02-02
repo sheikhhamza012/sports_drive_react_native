@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native'
-export const url="https://sports-drive.herokuapp.com/api/";
-// export const url="http://10.0.2.2:3000/api/";
+// export const url="https://sports-drive.herokuapp.com/api/";
+export const url="http://10.0.2.2:3000/api/";
 // export const url="http://0.0.0.0:3000/api/";
 // export const url="http://192.168.10.7:3000/api/";
 export const notification_types={
