@@ -1,8 +1,8 @@
 import {StyleSheet} from 'react-native'
-// export const url="https://sports-drive.herokuapp.com/api/";
-export const url="http://10.0.2.2:3000/api/";
+export const url="https://sports-drive.herokuapp.com/api/";
+// export const url="http://10.0.2.2:3000/api/";
 // export const url="http://0.0.0.0:3000/api/";
-// export const url="http://192.168.10.7:3000/api/";
+// export const url="http://192.168.10.14:3000/api/";
 export const notification_types={
   BOOKING_REQUEST_RECIEVED:0,
   BOOKING_REQUEST_ACCEPTED:1
@@ -23,6 +23,7 @@ export const api={
     get_arena:(id)=>( url+`arena/${id}`),
     get_arena_with_time:(id)=>( url+`arena/${id}/availibility`),
     get_group:(id)=>( url+`groups/${id}`),
+    get_teams:url+`teams`,
     create_price:(id)=>( url+`groups/${id}/prices`),
     create_price_for_field:(id)=>( url+`fields/${id}/prices`),
     update_price:(pid,id)=>( url+`groups/${pid}/prices/${id}`),
@@ -38,6 +39,8 @@ export const api={
     delete_booking_request:id=> `${url}/arena_booking_request/${id}`,
     delete_price_slot:id=> `${url}/prices/${id}`,
     get_price_slots_of_field:(id,date)=> `${url}/fields/${id}/prices?date=${date}`,
+    create_team: `${url}/teams`,
+    join_team: token=>`${url}/teams/join?token=${token}`,
 }
 export const colors={
   dark_grey:"#666",

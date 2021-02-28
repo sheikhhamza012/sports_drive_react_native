@@ -6,6 +6,7 @@ import signin from './components/signin'
 import home from './components/home'
 import player_sports_menu from './components/player/sports_menu'
 import vendor_sports_menu from './components/vendor/sports_menu'
+import arena_details from './components/vendor/arena_details'
 import booking_search from './components/player/booking_search'
 import booking_details from './components/player/booking_details'
 import player_profile from './components/player/profile'
@@ -33,7 +34,10 @@ import my_earnings from './components/vendor/my_earnings/index'
 import pending_booking_requests from './components/vendor/pending_booking_requests/index'
 import show_pending_booking_requests from './components/vendor/pending_booking_requests/show'
 import debug from './components/player/debug'
-import create_team from './components/player/create_team'
+import create_team_screen from './components/player/create_team'
+import invite_to_team from './components/player/create_team/invite_to_team'
+import join_friends_team from './components/player/join_friends_team/index'
+
 export default {
     splash:connect((state)=>state)(splash),
     Authentication:connect((state)=>state)(authentication),
@@ -58,14 +62,18 @@ export default {
         vendor_request_recieved:connect((state)=>state)(vendor_request_recieved),
         debug:connect((state)=>state)(debug),
         create_team:{
-            index:connect((state)=>state)(create_team),
+            index:connect((state)=>state)(create_team_screen),
+            invite_to_team:connect((state)=>state)(invite_to_team),
+        },
+        join_friends_team:{
+            index:connect((state)=>state)(join_friends_team),
         }
     },
     vendor:{
         profile:connect((state)=>state)(vendor_profile),
         sports_menu:connect((state)=>state)(vendor_sports_menu),
         register_arena:connect((state)=>state)(register_arena),
-        booking_details:connect((state)=>state)(booking_details),
+        arena_details:connect((state)=>state)(arena_details),
         my_arenas:connect((state)=>state)(my_arenas),
         pending_booking_requests:{
             index:connect((state)=>state)(pending_booking_requests),

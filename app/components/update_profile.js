@@ -145,10 +145,11 @@ export default class home extends Component {
                         containerStyle={{height: 45}}
                         style={[this.state.errors.player_of&&{borderColor:colors.red},{borderTopLeftRadius: 0, borderTopRightRadius: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0}]}
                         itemStyle={{
-                            justifyContent: 'flex-start'
+                            justifyContent: 'flex-start',
+                            elevation:4
                         }}
                        
-                        labelStyle={this.state.errors.player_of&&{color:colors.red}}
+                        labelStyle={[{color:colors.black},this.state.errors.player_of&&{color:colors.red}]}
                         dropDownStyle={{backgroundColor: '#fafafa',elevation:3}}
                         onChangeItem={item => this.setState({
                             profile:{...this.state.profile,player_of: item.value},

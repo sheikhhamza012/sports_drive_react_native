@@ -37,8 +37,12 @@ export default class index extends Component {
                     <View style={{justifyContent:"center",alignItems:"center",flex:1}}>
                         <Text style={{fontSize:20,fontWeight:"700", color:colors.white}}>{this.state.request.user?.first_name} {this.state.request.user?.last_name}</Text>
                         <Text style={{fontSize:18,color:colors.white}}>Wants to book your {this.state.request?.field?.field_type}</Text>
-                        <Button  placeholder={"ACCEPT"} onPress={()=>accept(this.props.route.params.id)} style={styles.arenaButton} placeholderStyle={{fontSize:18,color:colors.blue}} />
-                        <Button  placeholder={"DECLINE"} onPress={()=>accept(this.props.route.params.id,this,"Declined")} style={styles.declineArenaButton} placeholderStyle={{fontSize:11,color:colors.white}} />
+                        <Button  placeholder={"ACCEPT"} onPress={()=>accept(this.props.route.params.id,this,"Accepted",()=>{
+                            this.props.navigation.navigate("pending_booking_requests")
+                        })} style={styles.arenaButton} placeholderStyle={{fontSize:18,color:colors.blue}} />
+                        <Button  placeholder={"DECLINE"} onPress={()=>accept(this.props.route.params.id,this,"Declined",()=>{
+                            this.props.navigation.navigate("pending_booking_requests")
+                        })} style={styles.declineArenaButton} placeholderStyle={{fontSize:11,color:colors.white}} />
 
                     </View>
                     <View style={{height:200,backgroundColor:colors.white, borderTopEndRadius:50,borderTopLeftRadius:50,alignItems:"center",justifyContent:"center"}}>

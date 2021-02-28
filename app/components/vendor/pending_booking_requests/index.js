@@ -9,30 +9,35 @@ import messaging from '@react-native-firebase/messaging';
 import { ActivityIndicator } from 'react-native-paper'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 
+export const fetchList=(ref)=>{
+    ref.setState({isLoading:true})
+    axios('get',api.pending_requests,null,true)
+        .then(async({data})=>{
+            ref.setState({isLoading:false})
+            if(data.error){
+                ref.refs.toast.show(data.msg)
+                return
+            }
+            ref.props.dispatch({type:"SET_SCREEN", key:'pending_booking_requests' , data:data.requests??[]})
+            
+        })
+        .catch(x=>{
+            ref.setState({isLoading:false})
+            console.log(x)
+        })
+}
+
 export default class index extends Component {
     state={
         requests:[]
     }
+    
     componentDidMount=()=>{
 
        
         // messaging().onMessage(this.componentDidMount);
 
-        this.setState({isLoading:true})
-        axios('get',api.pending_requests,null,true)
-            .then(async({data})=>{
-                this.setState({isLoading:false})
-                if(data.error){
-                    this.refs.toast.show(data.msg)
-                    return
-                }
-                this.props.dispatch({type:"SET_SCREEN", key:'pending_booking_requests' , data:data.requests??[]})
-                
-            })
-            .catch(x=>{
-                this.setState({isLoading:false})
-                console.log(x)
-            })
+        
     }
     renderList = ()=>{
         return(
@@ -54,7 +59,7 @@ export default class index extends Component {
         )
     }
 }
-export const accept=(id,ref,status="Accepted")=>{
+export const accept=(id,ref,status="Accepted",callback)=>{
     ref.setState({isLoading:true})
     axios('patch',api.update_booking_requests(id),{status:status},true)
         .then(async({data})=>{
@@ -63,7 +68,8 @@ export const accept=(id,ref,status="Accepted")=>{
                 alert(data.msg)
                 return
             }
-            ref.props.reload()
+            fetchList(ref)
+            callback()
             
         })
         .catch(x=>{
@@ -89,7 +95,9 @@ class Item extends Component {
                     <ActivityIndicator />
                 :
 
-                    <Button  placeholder={"ACCEPT"} onPress={()=>accept(data.id,this)} style={styles.arenaButton} placeholderStyle={{fontSize:10,color:colors.blue}} />
+                    <Button  placeholder={"ACCEPT"} onPress={()=>accept(data.id,this,"Accepted", ()=>{
+                        this.props.reload()
+                    })} style={styles.arenaButton} placeholderStyle={{fontSize:10,color:colors.blue}} />
                 }
             </TouchableOpacity>
         )

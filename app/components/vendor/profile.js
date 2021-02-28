@@ -20,7 +20,6 @@ export default class Profile extends Component {
         this.props.dispatch({type:"SET_SCREEN",key:"my_arena",data:res.data.arena??[]})
     }
     render() {
-        console.log(this.props.my_arena)
 
         return (
             <ImageBackground style={styles.background} source={require('../../images/app_background.png')}>
@@ -65,7 +64,7 @@ export default class Profile extends Component {
                                     <Icon name="circle-edit-outline" color={colors.blue} size={22}/> 
                                 </TouchableOpacity>
                             </View>
-                            <Card data = {{image:this.props.my_arena.image,location:(this.props.my_arena.location??{}),name:this.props.my_arena.name,rating:this.props.my_arena.rating}}/>   
+                            <Card onPress={()=>this.props.navigation.navigate("arena_details")} data = {{image:this.props.my_arena.image,location:(this.props.my_arena.location??{}),name:this.props.my_arena.name,rating:this.props.my_arena.rating}}/>   
 
                         </View>
 

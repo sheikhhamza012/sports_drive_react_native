@@ -40,8 +40,8 @@ const initialState={
     },
     activeBooking:null,
     my_arena:{},
-    pending_booking_requests:[]
-    
+    pending_booking_requests:[],
+    teams:[]
  }
 
 rootReducer=(istate,action)=>{

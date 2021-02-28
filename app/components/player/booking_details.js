@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
 import  { Text,Linking, RefreshControl,TouchableOpacity,FlatList , View, ScrollView,StyleSheet,Image,TextInput, ImageBackground, ActivityIndicator, Platform, Dimensions} from 'react-native'
 import Button from '../../reuseableComponents/button'
+import Icon from 'react-native-vector-icons/AntDesign'
 import { colors, api } from '../../constants'
 // import MapView from 'react-native-maps'
-import Icon from 'react-native-vector-icons/AntDesign'
 import {axios,getPrice} from '../../reuseableComponents/externalFunctions'
 import DatepickerRange,{SingleDatepicker} from '../../reuseableComponents/react-native-range-datepicker';
 import moment from 'moment'

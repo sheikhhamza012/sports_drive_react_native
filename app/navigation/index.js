@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View,ImageBackground,TouchableOpacity,StatusBar,Platform,Image, ActivityIndicator,Text ,AsyncStorage,StyleSheet} from 'react-native';
+import { View,Linking,ImageBackground,TouchableOpacity,StatusBar,Platform,Image, ActivityIndicator,Text ,AsyncStorage,StyleSheet} from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import imports from '../imports'
 import {colors,api,notification_types} from '../constants'
@@ -15,6 +15,7 @@ import moment from 'moment'
 import messaging from '@react-native-firebase/messaging';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import Toast from 'react-native-easy-toast'
+import {URLSearchParams} from '@visto9259/urlsearchparams-react-native';
 
 const Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
@@ -36,20 +37,43 @@ export const get_active_request = (props)=>axios('get',api.get_active_request,nu
   })
 .catch(x=>console.log(x))
 
+export const join_team = ({props,token})=>{
+  console.log(props)
+  axios('get',api.join_team(token),null,true)
+  .then(async({data})=>{
+    if(data.error){
+        alert(data.msg)
+        return
+    }
+    props.navigationRef().navigate('done',{text:"Team joined"})
+  })
+  .catch(x=>console.log(x))
+}
+
 
 class App extends Component {
   state = { isLoggingIn:true, isLoggedIn:false }
-  
+  handleOpenURL=event=>{
+    var params =  event.url.split('?')[1]
+    if(params){
+      var query = new URLSearchParams(params)
+      var token = query.get('token')
+      if (token){
+        join_team({token,props:this.props})
+      }
+    }
+  }
   componentDidMount=()=>{
-    // let fetch_request_list =()=>axios('get',api.pending_requests,null,true)
-    //                             .then(async({data})=>{
-    //                               alert()
-    //                                 if(!data.error){
-    //                                   alert(JSON.stringify(data))
-    //                                   this.props.dispatch({type:"SET_SCREEN", key:'pending_booking_requests' , data:data.requests??[]})
-    //                                 }
-    //                             }).catch(x=>console.log(x,"error in notification recieved"))
 
+    // this.handleOpenURL({url:"sportsdrive:team/?token=eyJhbGciOiJIUzI1NiJ9.eyJ0ZWFtX2lkIjoyM30.CdoRV-Y2Ab53RbuMB-0_AmtTJ5mV3buekHt21ZgjMBE"})
+    if (Platform.OS === 'android') {
+      Linking.getInitialURL().then(url => {
+        this.navigate(url);
+      });
+    } else {
+        Linking.addEventListener('url', this.handleOpenURL);
+    }
+    
     let callback = (message) => {
       if(message.data.type == notification_types.BOOKING_REQUEST_RECIEVED){
         fetch_request_list(this.props)
@@ -68,6 +92,8 @@ class App extends Component {
     console.log("unsub")
     this.unsub_on_message()
     this.unsub_on_notif_opened()
+    Linking.removeEventListener('url', this.handleOpenURL);
+
   }
  header=({navigation})=>{
   const parent_props=this.props
@@ -198,7 +224,14 @@ class App extends Component {
         <Stack.Screen name="debug" component={imports.player.debug} options={{headerTransparent:false}}/>
         <Stack.Screen name="booking_details" component={imports.player.booking_details} options={this.header}/>
         <Stack.Screen name="booking_history" component={imports.player.booking_history} options={{headerShown:false}}/>
-        <Stack.Screen name="create_team" initialParams={{title:"Make Your Own Team"}} component={imports.player.create_team.index} options={this.blue_header}/>
+        <Stack.Screen name="join_friends_team" component={imports.player.join_friends_team.index} initialParams={{title:"Join a friends team"}} options={this.header}/>
+        <>
+        {this.props.teams.length>0?
+          <Stack.Screen name="create_team" initialParams={{title:"Make Your Own Team"}} component={imports.player.create_team.invite_to_team} options={this.blue_header}/>
+          :
+          <Stack.Screen name="create_team" initialParams={{title:"Make Your Own Team"}} component={imports.player.create_team.index} options={this.blue_header}/>
+        }
+        </>
           {this.props.user.vendor_detail?
             <Stack.Screen name="become_a_vendor" component={imports.player.vendor_request_recieved}  options={{headerShown:false}}/>
             :
@@ -227,7 +260,7 @@ class App extends Component {
         {this.common_screens()}
         <Stack.Screen name="sports_menu" component={imports.vendor.sports_menu} options={this.header} />
         <Stack.Screen name="register_arena" component={imports.vendor.register_arena} options={this.header}/>
-        <Stack.Screen name="booking_details" component={imports.vendor.booking_details} options={this.header}/>
+        <Stack.Screen name="arena_details" component={imports.vendor.arena_details} options={this.header}/>
         <Stack.Screen name="profile" component={imports.vendor.profile} options={this.header}/>
         <Stack.Screen name="my_arenas" component={imports.vendor.my_arenas} initialParams={{title:"My Arenas"}} options={this.blue_header}/>
         <Stack.Screen name="group_pricing" component={imports.vendor.group_pricing} options={this.blue_header}/>
@@ -345,7 +378,7 @@ class ActiveBooking extends Component {
   }
   render() {
     return (
-      this.props.activeBooking&&this.props.current_view=="player"&&this.props.pending_booking_requests.length==0?
+      this.props.activeBooking&&["Accepted","Pending"].includes(this.props.activeBooking.status)&&this.props.current_view=="player"&&this.props.pending_booking_requests.length==0?
       <TouchableOpacity style={styles.activeRequest} onPress={()=>this.props.navigation.navigate('booking_request_recieved')}>
         <View style={styles.row}>
           <Text style={{fontWeight:"bold"}}> {this.props.activeBooking.arena.name} </Text>

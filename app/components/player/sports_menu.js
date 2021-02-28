@@ -25,6 +25,7 @@ export default class SportsMenu extends Component {
                         placeholder="Join A Friend's Team" 
                         placeholderStyle={styles.button_placeholder}
                         style={styles.button}
+                        onPress={()=>this.props.navigation.navigate("join_friends_team")}
                     />
                     <Button 
                         placeholder="Make Your Own Team" 

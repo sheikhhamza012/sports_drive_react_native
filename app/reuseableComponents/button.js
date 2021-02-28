@@ -6,7 +6,7 @@ import AIcon from 'react-native-vector-icons/AntDesign'
 export default class button extends Component {
     render() {
         return (
-            <TouchableOpacity disabled={this.props.isLoading} onPress={this.props.onPress} style={[styles.root,this.props.style]}>
+            <TouchableOpacity disabled={(this.props.disabled??this.props.isLoading)} onPress={this.props.onPress} style={[styles.root,this.props.style]}>
                 {this.props.isLoading?
                     <ActivityIndicator color={colors.white} size="small"/>
                 :

@@ -163,7 +163,7 @@ const styles=StyleSheet.create({
     fieldStyle:{
         paddingVertical:12,
         fontSize:16,
-        color:colors.white
+        color:colors.white,
     },
     cover:{
         // aspectRatio:2251/1403,

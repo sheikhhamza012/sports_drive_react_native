@@ -9,7 +9,7 @@ import {Field} from '../signup'
 export default class home extends Component {
     state={
         errors:{},
-        register_arena:{
+        create_team:{
             image:{},
             name:"",
             location:"",
